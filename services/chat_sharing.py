@@ -34,8 +34,6 @@ class ChatSharing:
             # Add indicators for multimedia content
             if message.get("image"):
                 clean_message["has_image"] = True
-            if message.get("audio"):
-                clean_message["has_audio"] = True
             
             shareable_messages.append(clean_message)
         
@@ -136,8 +134,6 @@ class ChatSharing:
                 
                 if message.get("has_image"):
                     output.append("  [Image was attached]")
-                if message.get("has_audio"):
-                    output.append("  [Audio message was sent]")
                 
                 output.append("")
             
