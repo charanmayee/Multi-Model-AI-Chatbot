@@ -1,0 +1,6 @@
+streamlit=1.49.1
+google-cloud-speech=2.33.0
+google-cloud-texttospeech=2.29.0
+google-cloud-translate=3.21.1
+google-genai=1.33.0
+reportlab=4.4.3
