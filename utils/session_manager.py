@@ -26,9 +26,6 @@ class SessionManager:
         if 'language' not in st.session_state:
             st.session_state.language = 'en'
         
-        if 'voice_enabled' not in st.session_state:
-            st.session_state.voice_enabled = False
-        
         if 'current_mode' not in st.session_state:
             st.session_state.current_mode = "Mixed"
         
@@ -53,14 +50,13 @@ class SessionManager:
         if 'shared_links' not in st.session_state:
             st.session_state.shared_links = []
     
-    def add_message(self, role: str, text: str = "", image: Optional[bytes] = None, audio: Optional[bytes] = None) -> None:
+    def add_message(self, role: str, text: str = "", image: Optional[bytes] = None) -> None:
         """Add a message to the conversation"""
         message = {
             "role": role,
             "timestamp": datetime.now().isoformat(),
             "text": text,
-            "image": image,
-            "audio": audio
+            "image": image
         }
         
         st.session_state.messages.append(message)
@@ -93,7 +89,7 @@ class SessionManager:
     
     def set_mode(self, mode: str) -> None:
         """Set the current chat mode"""
-        valid_modes = ["Mixed", "Text Only", "Image Analysis", "Image Generation", "Voice Chat"]
+        valid_modes = ["Mixed", "Text Only", "Image Analysis", "Image Generation"]
         if mode in valid_modes:
             st.session_state.current_mode = mode
     
@@ -101,14 +97,6 @@ class SessionManager:
         """Get the current chat mode"""
         return st.session_state.current_mode
     
-    def toggle_voice(self) -> bool:
-        """Toggle voice features on/off"""
-        st.session_state.voice_enabled = not st.session_state.voice_enabled
-        return st.session_state.voice_enabled
-    
-    def is_voice_enabled(self) -> bool:
-        """Check if voice features are enabled"""
-        return st.session_state.voice_enabled
     
     def set_api_key_configured(self, configured: bool) -> None:
         """Set API key configuration status"""
@@ -125,7 +113,6 @@ class SessionManager:
         assistant_messages = [m for m in messages if m["role"] == "assistant"]
         
         image_count = len([m for m in messages if m.get("image")])
-        audio_count = len([m for m in messages if m.get("audio")])
         
         return {
             "chat_id": st.session_state.chat_id,
@@ -133,10 +120,8 @@ class SessionManager:
             "user_messages": len(user_messages),
             "assistant_messages": len(assistant_messages),
             "images_shared": image_count,
-            "audio_messages": audio_count,
             "language": st.session_state.language,
-            "mode": st.session_state.current_mode,
-            "voice_enabled": st.session_state.voice_enabled
+            "mode": st.session_state.current_mode
         }
     
     def export_session_data(self) -> Dict[str, Any]:
@@ -148,15 +133,13 @@ class SessionManager:
                     "role": msg["role"],
                     "timestamp": msg["timestamp"],
                     "text": msg.get("text", ""),
-                    "has_image": bool(msg.get("image")),
-                    "has_audio": bool(msg.get("audio"))
+                    "has_image": bool(msg.get("image"))
                 }
                 for msg in st.session_state.messages
             ],
             "settings": {
                 "language": st.session_state.language,
-                "mode": st.session_state.current_mode,
-                "voice_enabled": st.session_state.voice_enabled
+                "mode": st.session_state.current_mode
             },
             "exported_at": datetime.now().isoformat()
         }
@@ -174,7 +157,6 @@ class SessionManager:
             settings = session_data.get("settings", {})
             st.session_state.language = settings.get("language", "en")
             st.session_state.current_mode = settings.get("mode", "Mixed")
-            st.session_state.voice_enabled = settings.get("voice_enabled", False)
             
             # Load messages (without binary data)
             messages = session_data.get("messages", [])
@@ -183,8 +165,7 @@ class SessionManager:
                     "role": msg_data["role"],
                     "timestamp": msg_data["timestamp"],
                     "text": msg_data.get("text", ""),
-                    "image": None,  # Binary data not preserved
-                    "audio": None   # Binary data not preserved
+                    "image": None  # Binary data not preserved
                 }
                 st.session_state.messages.append(message)
             
