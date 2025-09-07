@@ -94,10 +94,6 @@ class ExportService:
             if message.get("image"):
                 output.append("[Image attached]")
             
-            # Add audio indicators
-            if message.get("audio"):
-                output.append("[Audio message]")
-            
             output.append("")  # Empty line between messages
         
         return "\n".join(output)
@@ -173,8 +169,6 @@ class ExportService:
             indicators = []
             if message.get("image"):
                 indicators.append("[Image attached]")
-            if message.get("audio"):
-                indicators.append("[Audio message]")
             
             if indicators:
                 indicator_text = " ".join(indicators)
@@ -211,8 +205,6 @@ class ExportService:
             # Add indicators for multimedia content
             if message.get("image"):
                 clean_message["has_image"] = True
-            if message.get("audio"):
-                clean_message["has_audio"] = True
             
             export_data["messages"].append(clean_message)
         
