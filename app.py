@@ -7,7 +7,6 @@ import datetime
 import uuid
 
 from services.gemini_service import GeminiService
-from services.voice_service import VoiceService
 from services.translation_service import TranslationService
 from services.content_filter import ContentFilter
 from services.export_service import ExportService
@@ -30,7 +29,6 @@ def initialize_services():
     
     return {
         'gemini': GeminiService(gemini_api_key),
-        'voice': VoiceService(),
         'translation': TranslationService(),
         'content_filter': ContentFilter(),
         'export': ExportService(),
@@ -45,14 +43,12 @@ def initialize_session_state():
         st.session_state.chat_id = str(uuid.uuid4())
     if 'language' not in st.session_state:
         st.session_state.language = 'en'
-    if 'voice_enabled' not in st.session_state:
-        st.session_state.voice_enabled = False
     if 'current_mode' not in st.session_state:
         st.session_state.current_mode = "Mixed"
 
 def main():
     st.title("🤖 Multi-Modal AI Chatbot")
-    st.markdown("Chat with AI using text, images, and voice. Generate images and get intelligent responses.")
+    st.markdown("Chat with AI using text and images. Generate images and get intelligent responses.")
     
     # Initialize services and session state
     services = initialize_services()
@@ -78,8 +74,8 @@ def main():
         # Mode selection
         mode = st.selectbox(
             "Chat Mode",
-            ["Mixed", "Text Only", "Image Analysis", "Image Generation", "Voice Chat"],
-            index=["Mixed", "Text Only", "Image Analysis", "Image Generation", "Voice Chat"].index(st.session_state.current_mode)
+            ["Mixed", "Text Only", "Image Analysis", "Image Generation"],
+            index=["Mixed", "Text Only", "Image Analysis", "Image Generation"].index(st.session_state.current_mode) if st.session_state.current_mode in ["Mixed", "Text Only", "Image Analysis", "Image Generation"] else 0
         )
         st.session_state.current_mode = mode
         
@@ -100,12 +96,6 @@ def main():
             index=list(languages.keys()).index(st.session_state.language)
         )
         st.session_state.language = selected_language
-        
-        # Voice settings
-        st.session_state.voice_enabled = st.checkbox(
-            "Enable Voice Features",
-            value=st.session_state.voice_enabled
-        )
         
         st.divider()
         
@@ -168,14 +158,12 @@ def main():
                 
                 if message.get("image"):
                     if isinstance(message["image"], str) and message["image"].startswith("data:image"):
-                        st.image(message["image"], caption="Generated Image", use_column_width=True)
+                        st.image(message["image"], caption="Generated Image", use_container_width=True)
                     elif isinstance(message["image"], bytes):
-                        st.image(message["image"], caption="Uploaded Image", use_column_width=True)
+                        st.image(message["image"], caption="Uploaded Image", use_container_width=True)
                     else:
-                        st.image(message["image"], caption="Image", use_column_width=True)
+                        st.image(message["image"], caption="Image", use_container_width=True)
                 
-                if message.get("audio") and st.session_state.voice_enabled:
-                    st.audio(message["audio"], format="audio/wav")
     
     # Input section
     st.divider()
@@ -191,28 +179,23 @@ def main():
         
         if uploaded_file:
             uploaded_image = Image.open(uploaded_file)
-            st.image(uploaded_image, caption="Uploaded Image", use_column_width=True)
+            st.image(uploaded_image, caption="Uploaded Image", use_container_width=True)
     
-    # Voice input (if enabled)
-    audio_input = None
-    if st.session_state.voice_enabled and mode in ["Mixed", "Voice Chat"]:
-        audio_input = st.audio_input("Record your message")
     
     # Text input
     user_input = st.chat_input("Type your message here...")
     
     # Process input
-    if user_input or uploaded_image or audio_input:
+    if user_input or uploaded_image:
         process_user_input(
             services,
             user_input,
             uploaded_image,
-            audio_input,
             mode,
             selected_language
         )
 
-def process_user_input(services, text_input, image_input, audio_input, mode, language):
+def process_user_input(services, text_input, image_input, mode, language):
     """Process user input and generate AI response"""
     
     # Prepare user message
@@ -220,21 +203,9 @@ def process_user_input(services, text_input, image_input, audio_input, mode, lan
         "role": "user",
         "timestamp": datetime.datetime.now().isoformat(),
         "text": text_input or "",
-        "image": None,
-        "audio": None
+        "image": None
     }
     
-    # Handle audio input
-    if audio_input and st.session_state.voice_enabled:
-        try:
-            # Convert audio to text
-            audio_text = services['voice'].speech_to_text(audio_input.getvalue(), language)
-            if audio_text:
-                user_message["text"] = audio_text
-                user_message["audio"] = audio_input.getvalue()
-                st.info(f"Voice input: {audio_text}")
-        except Exception as e:
-            st.error(f"Voice processing error: {str(e)}")
     
     # Handle image input
     if image_input:
@@ -252,7 +223,7 @@ def process_user_input(services, text_input, image_input, audio_input, mode, lan
             if user_message["text"]:
                 st.write(user_message["text"])
             if user_message["image"]:
-                st.image(user_message["image"], caption="Your image", use_column_width=True)
+                st.image(user_message["image"], caption="Your image", use_container_width=True)
     
     # Generate AI response
     with st.chat_message("assistant"):
@@ -283,10 +254,8 @@ def process_user_input(services, text_input, image_input, audio_input, mode, lan
                     st.write(response["text"])
                 
                 if response.get("image"):
-                    st.image(response["image"], caption="Generated Image", use_column_width=True)
+                    st.image(response["image"], caption="Generated Image", use_container_width=True)
                 
-                if response.get("audio") and st.session_state.voice_enabled:
-                    st.audio(response["audio"], format="audio/wav")
                 
             except Exception as e:
                 st.error(f"Error generating response: {str(e)}")
@@ -294,8 +263,7 @@ def process_user_input(services, text_input, image_input, audio_input, mode, lan
                     "role": "assistant",
                     "timestamp": datetime.datetime.now().isoformat(),
                     "text": f"I apologize, but I encountered an error: {str(e)}. Please try again.",
-                    "image": None,
-                    "audio": None
+                    "image": None
                 }
                 st.session_state.messages.append(error_response)
 
@@ -306,8 +274,7 @@ def generate_ai_response(services, user_message, context):
         "role": "assistant",
         "timestamp": datetime.datetime.now().isoformat(),
         "text": "",
-        "image": None,
-        "audio": None
+        "image": None
     }
     
     mode = context["mode"]
@@ -351,14 +318,6 @@ def generate_ai_response(services, user_message, context):
             if translated_text:
                 response["text"] = translated_text
         
-        # Generate voice output if enabled
-        if st.session_state.voice_enabled and response["text"]:
-            try:
-                audio_data = services['voice'].text_to_speech(response["text"], language)
-                if audio_data:
-                    response["audio"] = audio_data
-            except Exception as e:
-                st.warning(f"Voice generation failed: {str(e)}")
     
     except Exception as e:
         response["text"] = f"I encountered an error processing your request: {str(e)}"
