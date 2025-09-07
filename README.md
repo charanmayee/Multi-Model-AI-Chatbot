@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a Streamlit-based multi-modal AI chatbot application that enables users to interact with AI through text, images, and voice. The application leverages Google's Gemini AI models for text and vision understanding, providing a comprehensive conversational AI experience with features like content filtering, translation, voice processing, and chat sharing capabilities.
+This is a Streamlit-based multi-modal AI chatbot application that enables users to interact with AI through text and images. The application leverages Google's Gemini AI models for text and vision understanding, providing a comprehensive conversational AI experience with features like content filtering, translation, and chat sharing capabilities.
 
 ## User Preferences
 
@@ -21,11 +21,9 @@ Preferred communication style: Simple, everyday language.
 - **AI Integration**: Google Gemini AI service for text generation and image understanding
 - **Content Safety**: Built-in content filtering system with pattern matching for inappropriate content
 - **Translation Support**: Google Cloud Translate integration for multi-language capabilities
-- **Voice Processing**: Google Cloud Speech-to-Text and Text-to-Speech services
 
 ### Core Services
 - **GeminiService**: Handles AI text generation and vision capabilities using Google Gemini models
-- **VoiceService**: Manages speech-to-text and text-to-speech operations
 - **TranslationService**: Provides text translation between multiple languages
 - **ContentFilter**: Implements safety measures to block inappropriate content
 - **ExportService**: Enables conversation export to various formats (PDF, JSON, TXT)
@@ -47,8 +45,6 @@ Preferred communication style: Simple, everyday language.
 
 ### AI and Machine Learning Services
 - **Google Gemini AI**: Primary AI model for text generation and image understanding
-- **Google Cloud Speech API**: Speech-to-text conversion capabilities
-- **Google Cloud Text-to-Speech API**: Text-to-speech synthesis
 - **Google Cloud Translate API**: Multi-language translation services
 
 ### Core Python Libraries
@@ -56,13 +52,12 @@ Preferred communication style: Simple, everyday language.
 - **PIL (Pillow)**: Image processing and validation
 - **ReportLab**: PDF generation for conversation exports
 - **google-genai**: Google Gemini AI client library
-- **google-cloud-speech**: Google Cloud Speech services
 - **google-cloud-translate**: Google Cloud Translation services
 
 ### Infrastructure Requirements
 - **Environment Variables**: GEMINI_API_KEY for AI services, BASE_URL for sharing functionality
-- **Google Cloud Credentials**: Service account or default credentials for Google Cloud services
-- **File System Access**: Temporary file storage for audio and image processing
+- **Google Cloud Credentials**: Service account or default credentials for Google Cloud translation services
+- **File System Access**: Temporary file storage for image processing
 
 ### Optional Integrations
 - **Database Support**: Architecture prepared for database integration for persistent storage
