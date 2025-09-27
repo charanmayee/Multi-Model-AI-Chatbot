@@ -29,6 +29,28 @@ class SessionManager:
         if 'current_mode' not in st.session_state:
             st.session_state.current_mode = "Mixed"
         
+        # Language detection and multilingual features
+        if 'language_confidence' not in st.session_state:
+            st.session_state.language_confidence = 1.0
+        
+        if 'language_auto_detected' not in st.session_state:
+            st.session_state.language_auto_detected = False
+        
+        if 'detected_languages' not in st.session_state:
+            st.session_state.detected_languages = []
+        
+        if 'cultural_context' not in st.session_state:
+            st.session_state.cultural_context = {}
+        
+        if 'multilingual_enabled' not in st.session_state:
+            st.session_state.multilingual_enabled = True
+        
+        if 'auto_translate' not in st.session_state:
+            st.session_state.auto_translate = True
+        
+        if 'language_switching_animation' not in st.session_state:
+            st.session_state.language_switching_animation = True
+        
         # API and service state
         if 'api_key_configured' not in st.session_state:
             st.session_state.api_key_configured = False
@@ -80,8 +102,23 @@ class SessionManager:
     
     def set_language(self, language: str) -> None:
         """Set the current language"""
-        if language in ['en', 'es', 'fr', 'de', 'zh', 'ja']:
+        # Support extended language list
+        supported_languages = [
+            'en', 'es', 'fr', 'de', 'zh', 'ja', 'ar', 'hi', 'pt', 'ru', 'it', 'ko',
+            'th', 'vi', 'tr', 'pl', 'nl', 'sv', 'da', 'no', 'fi', 'he', 'cs', 'hu',
+            'ro', 'bg', 'hr', 'sk', 'sl', 'et', 'lv', 'lt', 'uk', 'be', 'mk', 'sr',
+            'bs', 'sq', 'el', 'ca', 'gl', 'eu', 'mt', 'ga', 'cy', 'is', 'fo', 'lb',
+            'af', 'am', 'hy', 'az', 'bn', 'my', 'ka', 'gu', 'kn', 'km', 'lo', 'ml',
+            'mr', 'ne', 'pa', 'si', 'ta', 'te', 'ur', 'uz', 'id', 'ms', 'tl', 'sw'
+        ]
+        if language in supported_languages:
             st.session_state.language = language
+            # Track language detection confidence if available
+            if not hasattr(st.session_state, 'language_confidence'):
+                st.session_state.language_confidence = 1.0
+            # Track automatic vs manual language selection
+            if not hasattr(st.session_state, 'language_auto_detected'):
+                st.session_state.language_auto_detected = False
     
     def get_language(self) -> str:
         """Get the current language"""
@@ -177,3 +214,60 @@ class SessionManager:
         except Exception as e:
             print(f"Error loading session data: {e}")
             return False
+    
+    def set_language_detection_result(self, language: str, confidence: float, auto_detected: bool = True) -> None:
+        """Set language detection result"""
+        st.session_state.language = language
+        st.session_state.language_confidence = confidence
+        st.session_state.language_auto_detected = auto_detected
+    
+    def get_language_detection_info(self) -> Dict[str, Any]:
+        """Get language detection information"""
+        return {
+            'language': st.session_state.language,
+            'confidence': getattr(st.session_state, 'language_confidence', 1.0),
+            'auto_detected': getattr(st.session_state, 'language_auto_detected', False),
+            'detected_languages': getattr(st.session_state, 'detected_languages', [])
+        }
+    
+    def set_cultural_context(self, context: Dict[str, Any]) -> None:
+        """Set cultural context for the current language"""
+        st.session_state.cultural_context = context
+    
+    def get_cultural_context(self) -> Dict[str, Any]:
+        """Get cultural context"""
+        return getattr(st.session_state, 'cultural_context', {})
+    
+    def set_multilingual_settings(self, enabled: bool, auto_translate: bool = True, animations: bool = True) -> None:
+        """Set multilingual feature settings"""
+        st.session_state.multilingual_enabled = enabled
+        st.session_state.auto_translate = auto_translate
+        st.session_state.language_switching_animation = animations
+    
+    def get_multilingual_settings(self) -> Dict[str, bool]:
+        """Get multilingual settings"""
+        return {
+            'enabled': getattr(st.session_state, 'multilingual_enabled', True),
+            'auto_translate': getattr(st.session_state, 'auto_translate', True),
+            'animations': getattr(st.session_state, 'language_switching_animation', True)
+        }
+    
+    def add_detected_language(self, language: str, confidence: float) -> None:
+        """Add a detected language to the session"""
+        if not hasattr(st.session_state, 'detected_languages'):
+            st.session_state.detected_languages = []
+        
+        # Update existing or add new
+        for i, (lang, _) in enumerate(st.session_state.detected_languages):
+            if lang == language:
+                st.session_state.detected_languages[i] = (language, confidence)
+                return
+        
+        st.session_state.detected_languages.append((language, confidence))
+        
+        # Keep only top 5 detected languages
+        st.session_state.detected_languages = sorted(
+            st.session_state.detected_languages, 
+            key=lambda x: x[1], 
+            reverse=True
+        )[:5]
